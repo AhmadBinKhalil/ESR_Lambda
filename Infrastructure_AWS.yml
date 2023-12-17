@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  MyVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: b7a0efdd-c04e-4d82-a8dc-2d63d73946ed
+    DependsOn:
+      - PublicSubnet
+  PublicSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 2ce17f43-ddf3-49db-8990-886018e9e8dc
+  MyBucket:
+    Type: 'AWS::S3::Bucket'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: e49651fe-e6b9-4c3a-83db-4dceb16ce98c
+  MyLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: MyLambdaFunction
+      Runtime: provided.al2
+      Timeout: 600
+      MemorySize: 3072
+      Code:
+        ImageUri: '<your_ecr_repository_uri>:<your_image_tag>'
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref MyBucket
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: a55d1fcb-b641-4448-8e0c-32da4ab732bf
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: S3LambdaPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                  - 's3:PutObject'
+                Resource:
+                  - !Sub 'arn:aws:s3:::${MyBucket}/*'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 369c3b8e-c2f3-4b68-a09c-62594834fb13
+  MyIGW:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties: {}
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 236e7c74-4bf3-4147-8f6b-3041568a87c4
+  EC2VPCG1G56R:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref MyIGW
+      VpcId: !Ref MyVPC
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 1736392c-79f8-45e8-a5e2-d56992eb12f5
+Metadata:
+  'AWS::CloudFormation::Designer':
+    369c3b8e-c2f3-4b68-a09c-62594834fb13:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 310
+        'y': 110
+      z: 3
+      parent: 2ce17f43-ddf3-49db-8990-886018e9e8dc
+      embeds: []
+    e49651fe-e6b9-4c3a-83db-4dceb16ce98c:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 310
+        'y': 190
+      z: 3
+      parent: 2ce17f43-ddf3-49db-8990-886018e9e8dc
+      embeds: []
+    a55d1fcb-b641-4448-8e0c-32da4ab732bf:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 440
+        'y': 150
+      z: 3
+      parent: 2ce17f43-ddf3-49db-8990-886018e9e8dc
+      embeds: []
+    b7a0efdd-c04e-4d82-a8dc-2d63d73946ed:
+      size:
+        width: 560
+        height: 430
+      position:
+        x: 260
+        'y': -10
+      z: 1
+      embeds:
+        - 2ce17f43-ddf3-49db-8990-886018e9e8dc
+      dependson:
+        - 2ce17f43-ddf3-49db-8990-886018e9e8dc
+    2ce17f43-ddf3-49db-8990-886018e9e8dc:
+      size:
+        width: 260
+        height: 230
+      position:
+        x: 280
+        'y': 30
+      z: 2
+      parent: b7a0efdd-c04e-4d82-a8dc-2d63d73946ed
+      embeds:
+        - 369c3b8e-c2f3-4b68-a09c-62594834fb13
+        - e49651fe-e6b9-4c3a-83db-4dceb16ce98c
+        - a55d1fcb-b641-4448-8e0c-32da4ab732bf
+    236e7c74-4bf3-4147-8f6b-3041568a87c4:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 890
+        'y': 170
+      z: 0
+      embeds: []
+    1736392c-79f8-45e8-a5e2-d56992eb12f5:
+      source:
+        id: 236e7c74-4bf3-4147-8f6b-3041568a87c4
+      target:
+        id: b7a0efdd-c04e-4d82-a8dc-2d63d73946ed
+      z: 0
