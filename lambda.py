@@ -1,5 +1,3 @@
-print('running')
-
 from PIL import Image
 import json
 import tensorflow_hub as hub
@@ -24,9 +22,6 @@ def preprocess_image(image_path):
   hr_image = tf.image.crop_to_bounding_box(hr_image, 0, 0, hr_size[0], hr_size[1])
   hr_image = tf.cast(hr_image, tf.float32)
   return tf.expand_dims(hr_image, 0)
-
-s3_key = ''
-public_key = ''
 
 def lambda_handler_BUCKET(event, context):
   # Retrieve the S3 bucket and object key from the event
@@ -53,7 +48,7 @@ def lambda_handler_BUCKET(event, context):
 
 def save_image(image, filename):
   """
-    Saves unscaled Tensor Images.
+    Saves Tensor Images.
     Args:
       image: 3D image tensor. [height, width, channels]
       filename: Name of the file to save.
@@ -65,7 +60,6 @@ def save_image(image, filename):
   print("Saved as %s.jpg" % filename)
 
 def handler(event, context):
-  print(event)
   hr_image = preprocess_image(event['Image_path'])
   model = hub.load(SAVED_MODEL_PATH)
   upscaled = model(hr_image)
@@ -73,7 +67,5 @@ def handler(event, context):
   save_image(tf.squeeze(upscaled), filename="upscaled_Img")
   return {'body': 'Done', 'code': 200}
 
-  # curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"payload":"hello world!"}'
 
-# 43 secs cold start
-# 26 secs hot reload
+# curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"payload":"hello world!"}'

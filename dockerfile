@@ -4,4 +4,4 @@ COPY . ${LAMBDA_TASK_ROOT}
 
 RUN pip install -r requirements.txt
 
-# CMD ['lambda.handler']
+CMD ['lambda.handler']
