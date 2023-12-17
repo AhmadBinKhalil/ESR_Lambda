@@ -1,0 +1,5 @@
+tensorflow-cpu
+tensorflow_hub
+numpy
+boto3
+pillow
