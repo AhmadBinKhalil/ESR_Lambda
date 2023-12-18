@@ -1,3 +1,4 @@
+import urllib.parse
 from PIL import Image
 import json
 import tensorflow_hub as hub
@@ -5,6 +6,8 @@ import boto3
 from io import BytesIO
 import numpy as np
 import tensorflow as tf
+
+s3 = boto3.client('s3')
 
 SAVED_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
 
@@ -22,23 +25,23 @@ def preprocess_image(image_path):
   hr_image = tf.image.crop_to_bounding_box(hr_image, 0, 0, hr_size[0], hr_size[1])
   hr_image = tf.cast(hr_image, tf.float32)
   return tf.expand_dims(hr_image, 0)
+              
+
 
 def lambda_handler_BUCKET(event, context):
   # Retrieve the S3 bucket and object key from the event
   s3_bucket = event['Records'][0]['s3']['bucket']['name']
   s3_key = event['Records'][0]['s3']['object']['key']
 
-  # Initialize the S3 client
-  s3_client = boto3.client('s3')
-
   # Download the image from S3
-  response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key)
+  response = s3.get_object(Bucket=s3_bucket, Key=s3_key)
   image_data = response['Body'].read()
 
-  # Load the image into memory using Pillow
+  # Load the image into memory using Pillow ---------HERE
   image = Image.open(BytesIO(image_data))
+  save_image(image, filename="upscaled_Img")
 
-  hr_image = preprocess_image(image)
+  hr_image = preprocess_image('upscaled_Img')
   model = hub.load(SAVED_MODEL_PATH)
   upscaled = model(hr_image)
   upscaled = tf.squeeze(upscaled)
